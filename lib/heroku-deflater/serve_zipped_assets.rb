@@ -15,6 +15,18 @@ module HerokuDeflater
       @file_handler = ActionDispatch::FileHandler.new(root, cache_control)
     end
 
+    def gzip_extension(path)
+      s = "#{path}".split(".")
+      return "#{s[0]}.gz" if s.length <= 1
+      s[s.length-1] = "gz.#{s[s.length-1]}"
+      return s.join('.')
+    end
+    
+    def remove_gzip_extension(path)
+      path.slice! ".gz"
+      return path
+    end
+
     def call(env)
       if env['REQUEST_METHOD'] == 'GET'
         request = Rack::Request.new(env)
@@ -22,13 +34,13 @@ module HerokuDeflater
 
         if encoding == 'gzip'
           # See if gzipped version exists in assets directory
-          compressed_path = env['PATH_INFO'] + '.gz'
+          compressed_path = env['PATH_INFO']
 
-          if compressed_path.start_with?(@assets_path) && (match = @file_handler.match?(compressed_path))
+          if compressed_path.start_with?(@assets_path) && (@file_handler.match?(compressed_path))
             # Get the FileHandler to serve up the gzipped file, then strip the .gz suffix
-            env['PATH_INFO'] = match
+            # env['PATH_INFO'] = match
             status, headers, body = @file_handler.call(env)
-            env['PATH_INFO'].chomp!('.gz')
+            # env['PATH_INFO'].chomp!('.gz')
 
             # Set the Vary HTTP header.
             vary = headers['Vary'].to_s.split(',').map(&:strip)
@@ -39,7 +51,7 @@ module HerokuDeflater
 
             # Add encoding and type
             headers['Content-Encoding'] = 'gzip'
-            headers['Content-Type'] = Rack::Mime.mime_type(File.extname(env['PATH_INFO']), 'text/plain')
+            headers['Content-Type'] = Rack::Mime.mime_type(File.extname(remove_gzip_extension(env['PATH_INFO'])), 'text/plain')
 
             body.close if body.respond_to?(:close)
             return [status, headers, body]
