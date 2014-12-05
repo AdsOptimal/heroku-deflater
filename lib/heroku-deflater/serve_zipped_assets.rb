@@ -36,6 +36,7 @@ module HerokuDeflater
           # See if gzipped version exists in assets directory
           compressed_path = env['PATH_INFO']
 
+          puts compressed_path
           if compressed_path.start_with?(@assets_path) && compressed_path.index('.gz') && (@file_handler.match?(compressed_path))
             # Get the FileHandler to serve up the gzipped file, then strip the .gz suffix
             # env['PATH_INFO'] = match

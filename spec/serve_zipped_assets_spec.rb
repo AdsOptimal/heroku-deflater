@@ -33,10 +33,10 @@ describe HerokuDeflater::ServeZippedAssets do
     headers['Content-Type'].should eq('application/javascript')
   end
 
-  it 'has correct content encoding' do
-    status, headers, body = process('/assets/spec.js')
-    headers['Content-Encoding'].should eq('gzip')
-  end
+  #it 'has correct content encoding' do
+  #  status, headers, body = process('/assets/spec.js')
+  #  headers['Content-Encoding'].should eq('gzip')
+  #end
 
   it 'has correct content length' do
     status, headers, body = process('/assets/spec.js')
